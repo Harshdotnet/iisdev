@@ -1,0 +1,38 @@
+name: Deploy .NET App to IIS
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore NuGet Packages
+      run: dotnet restore
+
+    - name: Build Project
+      run: dotnet build --configuration Release
+
+    - name: Publish Application
+      run: dotnet publish -c Release -o publish
+
+    - name: Stop IIS
+      run: iisreset /stop
+
+    - name: Deploy to IIS Folder
+      run: |
+        xcopy publish\* "D:\.Net\Sites" /E /Y
+
+    - name: Start IIS
+      run: iisreset /start
